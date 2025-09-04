@@ -3,8 +3,6 @@ package com.example.music_app.viewmodel
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music_app.data.AppDatabase
@@ -39,7 +37,6 @@ class UserViewModel(application: Application, private val db: AppDatabase, priva
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.GINGERBREAD)
     fun logoutUser() {
         viewModelScope.launch {
             with(sharedPreferences.edit()) {
@@ -55,5 +52,30 @@ class UserViewModel(application: Application, private val db: AppDatabase, priva
             _logoutState.value = null
 
     }
+
+    fun deleteUserProfile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val rowsDeleted = db.userDao().deleteUserById(currentUserId)
+                if (rowsDeleted > 0) {
+                    with(sharedPreferences.edit()) {
+                        remove(KEY_USER_ID)
+                        apply()
+                    }
+                    _user.value = null
+                    _deleteProfileState.value = true
+                } else {
+                    _deleteProfileState.value = false
+                }
+            } catch (e: Exception) {
+                _deleteProfileState.value = false
+            }
+        }
+    }
+
+    fun resetDeleteProfileState() {
+        _deleteProfileState.value = null
+    }
+
 
 }
