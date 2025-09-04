@@ -77,5 +77,14 @@ class UserViewModel(application: Application, private val db: AppDatabase, priva
         _deleteProfileState.value = null
     }
 
-
+    fun updateProfilePicture(uriString: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val user = db.userDao().getUserById(currentUserId)
+            if (user != null) {
+                val updatedUser = user.copy(profilePicture = uriString)
+                db.userDao().updateUser(updatedUser)
+                _user.value = updatedUser
+            }
+        }
+    }
 }

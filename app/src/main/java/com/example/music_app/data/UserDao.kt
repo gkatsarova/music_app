@@ -3,6 +3,7 @@ package com.example.music_app.data
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface UserDao{
@@ -23,4 +24,7 @@ interface UserDao{
 
     @Query("DELETE FROM user WHERE uid = :uid")
     suspend fun deleteUserById(uid: Int): Int
+
+    @Update
+    suspend fun updateUser(user: UserEntity)
 }

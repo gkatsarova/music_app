@@ -16,5 +16,6 @@ data class UserEntity(
     @ColumnInfo(name = "username") val username: String,
     @ColumnInfo(name = "email") val email: String,
     @ColumnInfo(name = "password") val password: String,
-    @ColumnInfo(name = "role") val role: UserRole = UserRole.LISTENER
+    @ColumnInfo(name = "role") val role: UserRole = UserRole.LISTENER,
+    @ColumnInfo(name = "profile_picture") val profilePicture: String? = null
 )
