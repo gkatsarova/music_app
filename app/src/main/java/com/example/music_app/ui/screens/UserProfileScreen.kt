@@ -7,17 +7,21 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -71,23 +75,24 @@ fun UserProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
-                Text(
-                    text = "Profile",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
+                val isDarkTheme = isSystemInDarkTheme()
+
+                val avatarRes = if (isDarkTheme) {
+                    R.drawable.ic_user_avatar_gray
+                } else {
+                    R.drawable.ic_user_avatar_black
+                }
 
                 AsyncImage(
-                    model = u.profilePicture ?: R.drawable.user_avatar_filled_svgrepo_com,
+                    model = u.profilePicture ?: avatarRes,
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
                         .clickable { permissionLauncher.launch(permission) },
                     contentScale = ContentScale.Crop,
-                    placeholder = painterResource(id = R.drawable.user_avatar_filled_svgrepo_com),
-                    error = painterResource(id = R.drawable.user_avatar_filled_svgrepo_com)
+                    placeholder = painterResource(id = avatarRes),
+                    error = painterResource(id = avatarRes)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -96,41 +101,97 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    shape = RoundedCornerShape(35.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        ProfileInfoItem(label = "Username", value = u.username)
-                        ProfileInfoItem(label = "Email", value = u.email)
-                        ProfileInfoItem(label = "Role", value = u.role.name)
+                        Text(
+                            text = u.username,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.LightGray
+                        )
+                        Text(
+                            text = u.email,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.LightGray
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Button(
+                                onClick = { userViewModel.logoutUser() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.Transparent
+                                )
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        painter = if(isSystemInDarkTheme()) {
+                                            painterResource(id = R.drawable.ic_logout_gray)
+                                            }else{
+                                            painterResource(id = R.drawable.ic_logout_black)
+                                            },
+                                        contentDescription = "Logout",
+                                        modifier = Modifier.size(50.dp),
+                                        tint = Color.Unspecified
+                                    )
+                                    Text(
+                                        "Logout",
+                                        fontSize = 16.sp,
+                                        color = Color.LightGray,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = { showDeleteDialog = true },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent
+                                )
+                                ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Icon(
+                                        painter = if(isSystemInDarkTheme()) {
+                                            painterResource(id = R.drawable.ic_delete_gray)
+                                        }else{
+                                            painterResource(id = R.drawable.ic_delete_black)
+                                        },
+                                        contentDescription = "Delete Account",
+                                        modifier = Modifier.size(50.dp),
+                                        tint = Color.Unspecified
+                                    )
+                                    Text(
+                                        "Delete Account",
+                                        fontSize = 16.sp,
+                                        color = Color.LightGray,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                Button(
-                    onClick = { userViewModel.logoutUser() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Text("Logout", fontSize = 16.sp)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Delete Account", fontSize = 16.sp)
                 }
             }
         } ?: run {
@@ -194,27 +255,5 @@ fun UserProfileScreen(
             userViewModel.resetDeleteProfileState()
         }
         null -> {}
-    }
-}
-
-@Composable
-fun ProfileInfoItem(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
-        }
     }
 }

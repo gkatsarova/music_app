@@ -33,7 +33,7 @@ fun AppNavHost() {
                 authViewModel.loginUser(email, password) { success, message, userId ->
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                     if (success) {
-                        navController.navigate("profile/$userId"){
+                        navController.navigate("home"){
                             popUpTo("login") { inclusive = true }
                         }
                     }
@@ -46,7 +46,7 @@ fun AppNavHost() {
                 authViewModel.registerUser(username, email, password, role) { success, message, userId ->
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                     if (success) {
-                        navController.navigate("profile/$userId") {
+                        navController.navigate("home") {
                             popUpTo("register") { inclusive = true }
                         }
                     }
