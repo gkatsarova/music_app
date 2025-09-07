@@ -13,7 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AuthViewModel(private val db: AppDatabase): ViewModel(){
-    fun registerUser(username: String, email: String, password: String, role: UserRole, onResult: (Boolean, String) -> Unit){
+
+    var loggedInUserId: Int? = null
+        private set
+    fun registerUser(username: String, email: String, password: String, role: UserRole, onResult: (Boolean, String, Int?) -> Unit){
         viewModelScope.launch(Dispatchers.IO) {
             val userDao: UserDao = db.userDao()
             val existingEmail: UserEntity? = userDao.checkEmailExists(email)
@@ -22,43 +25,43 @@ class AuthViewModel(private val db: AppDatabase): ViewModel(){
             when {
                 existingEmail != null -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Email already exists")
+                        onResult(false, "Email already exists", null)
                     }
                 }
 
                 existingUsername != null -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Username already exists.")
+                        onResult(false, "Username already exists.", null)
                     }
                 }
 
                 username.isEmpty() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Username cannot be empty.")
+                        onResult(false, "Username cannot be empty.", null)
                     }
                 }
 
                 email.isEmpty() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Email cannot be empty.")
+                        onResult(false, "Email cannot be empty.", null)
                     }
                 }
 
                 password.isEmpty() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Password cannot be empty.")
+                        onResult(false, "Password cannot be empty.", null)
                     }
                 }
 
                 Patterns.EMAIL_ADDRESS.matcher(email).matches().not() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Invalid email format.")
+                        onResult(false, "Invalid email format.", null)
                     }
                 }
 
                 password.length < 8 -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Password must be at least 8 characters long.")
+                        onResult(false, "Password must be at least 8 characters long.", null)
                     }
                 }
 
@@ -70,11 +73,16 @@ class AuthViewModel(private val db: AppDatabase): ViewModel(){
                         password = hashedPassword,
                         role = role
                     )
-                    userDao.registerUser(user)
-                    withContext(Dispatchers.Main) {
-                        onResult(true, "Registration successful")
+                    try {
+                        val newUserId = userDao.registerUser(user).toInt()
+                        withContext(Dispatchers.Main) {
+                            onResult(true, "Registration successful", newUserId)
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            onResult(false, "Registration failed: ${e.message}", null)
+                        }
                     }
-
                 }
             }
 
@@ -84,7 +92,7 @@ class AuthViewModel(private val db: AppDatabase): ViewModel(){
     fun loginUser(
         email: String,
         password: String,
-        onResult: (Boolean, String) -> Unit
+        onResult: (Boolean, String, Int?) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val userDao: UserDao = db.userDao()
@@ -92,17 +100,17 @@ class AuthViewModel(private val db: AppDatabase): ViewModel(){
             when {
                 email.isEmpty() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Email cannot be empty.")
+                        onResult(false, "Email cannot be empty.", null)
                     }
                 }
                 password.isEmpty() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Password cannot be empty.")
+                        onResult(false, "Password cannot be empty.", null)
                     }
                 }
                 Patterns.EMAIL_ADDRESS.matcher(email).matches().not() -> {
                     withContext(Dispatchers.Main) {
-                        onResult(false, "Invalid email format.")
+                        onResult(false, "Invalid email format.", null)
                     }
                 }
                 else -> {
@@ -111,13 +119,17 @@ class AuthViewModel(private val db: AppDatabase): ViewModel(){
 
                     withContext(Dispatchers.Main) {
                         if (user != null) {
-                            onResult(true, "Successful login")
+                            onResult(true, "Successful login", user.uid)
                         } else {
-                            onResult(false, "Wrong email or password!")
+                            onResult(false, "Wrong email or password!", null)
                         }
                     }
                 }
             }
         }
+    }
+
+    fun clearLoggedInUser() {
+        loggedInUserId = null
     }
 }

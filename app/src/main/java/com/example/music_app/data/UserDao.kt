@@ -3,11 +3,12 @@ package com.example.music_app.data
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 
 @Dao
 interface UserDao{
     @Insert
-    suspend fun registerUser(user: UserEntity)
+    suspend fun registerUser(user: UserEntity): Long
 
     @Query("SELECT * FROM user WHERE email = :email AND password = :password LIMIT 1")
     suspend fun loginUser(email: String, password: String): UserEntity?
@@ -20,4 +21,10 @@ interface UserDao{
 
     @Query("SELECT * FROM user WHERE uid = :uid LIMIT 1")
     suspend fun getUserById(uid: Int): UserEntity?
+
+    @Query("DELETE FROM user WHERE uid = :uid")
+    suspend fun deleteUserById(uid: Int): Int
+
+    @Update
+    suspend fun updateUser(user: UserEntity)
 }
