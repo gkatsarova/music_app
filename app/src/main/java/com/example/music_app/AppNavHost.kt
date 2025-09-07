@@ -10,7 +10,8 @@ import android.widget.Toast
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.music_app.data.DatabaseClient
-import com.example.music_app.data.UserRole
+import com.example.music_app.data.repository.MusicRepository
+import com.example.music_app.data.user.UserRole
 import com.example.music_app.ui.screens.HomeScreen
 import com.example.music_app.ui.screens.LoginScreen
 import com.example.music_app.ui.screens.RegisterScreen
@@ -55,7 +56,14 @@ fun AppNavHost() {
         }
         // Home
         composable("home") {
-            HomeScreen()
+            val db = DatabaseClient.getDatabase(context)
+            val repository = MusicRepository(
+                trackDao = db.trackDao(),
+                artistDao = db.artistDao(),
+                albumDao = db.albumDao()
+            )
+
+            HomeScreen(repository = repository)
         }
 
         // Profile

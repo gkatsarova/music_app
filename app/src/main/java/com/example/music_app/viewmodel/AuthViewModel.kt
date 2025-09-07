@@ -4,10 +4,10 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music_app.data.AppDatabase
-import com.example.music_app.data.PasswordUtils
-import com.example.music_app.data.UserDao
-import com.example.music_app.data.UserEntity
-import com.example.music_app.data.UserRole
+import com.example.music_app.data.user.PasswordUtils
+import com.example.music_app.data.user.UserDao
+import com.example.music_app.data.user.UserEntity
+import com.example.music_app.data.user.UserRole
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

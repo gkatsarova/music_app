@@ -1,6 +1,7 @@
-package com.example.music_app.data
+package com.example.music_app.data.user
 
 import androidx.room.TypeConverter
+import com.example.music_app.data.user.UserRole
 
 class Converters {
     companion object {

@@ -1,10 +1,10 @@
-package com.example.music_app.data
+package com.example.music_app.data.user
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-
+import com.example.music_app.data.user.UserRole
 
 @Entity(tableName = "user",
     indices = [

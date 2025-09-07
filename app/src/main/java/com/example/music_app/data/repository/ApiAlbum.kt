@@ -1,0 +1,8 @@
+package com.example.music_app.data.repository
+
+data class ApiAlbum(
+    val id: String,
+    val title: String,
+    val artwork: Map<String, String>?,
+    val artist: ApiArtist
+)

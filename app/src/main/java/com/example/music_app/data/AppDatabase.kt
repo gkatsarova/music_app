@@ -3,9 +3,23 @@ package com.example.music_app.data
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.music_app.data.music.AlbumDao
+import com.example.music_app.data.music.AlbumEntity
+import com.example.music_app.data.music.ArtistDao
+import com.example.music_app.data.music.ArtistEntity
+import com.example.music_app.data.music.TrackDao
+import com.example.music_app.data.music.TrackEntity
+import com.example.music_app.data.user.Converters
+import com.example.music_app.data.user.UserDao
+import com.example.music_app.data.user.UserEntity
 
-@Database(entities = [UserEntity::class], version = 1)
+@Database(entities = [UserEntity::class, ArtistEntity::class, AlbumEntity::class, TrackEntity::class],
+    version = 1)
 @TypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun artistDao(): ArtistDao
+    abstract fun albumDao(): AlbumDao
+    abstract fun trackDao(): TrackDao
+
 }
