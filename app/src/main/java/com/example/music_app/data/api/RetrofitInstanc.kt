@@ -1,4 +1,4 @@
-package com.example.music_app.data.api // Или където се намира твоят RetrofitInstance
+package com.example.music_app.data.api
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

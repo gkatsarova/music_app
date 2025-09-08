@@ -10,60 +10,42 @@ class MusicRepository(
     private val artistDao: ArtistDao,
     private val albumDao: AlbumDao
 ) {
-
     private val api: AudiusApi = RetrofitInstance.api
 
-    suspend fun saveAllTracks(apiTracks: List<ApiTrack>) {
-        val artists = apiTracks.mapNotNull { it.user }
-            .map { it.toEntity() }
-            .distinctBy { it.id }
-        if (artists.isNotEmpty()) {
-            artistDao.insertAll(artists)
-            Log.d("DB_DEBUG", "Saved artists: ${artists.size}")
+    private suspend fun saveTracks(tracks: List<ApiTrack>) {
+        val trackEntities = tracks.map { track ->
+            track.toEntity().apply {
+                if (streamUrl.isNullOrEmpty()) {
+                    Log.d("TRACK_DEBUG", "Track ${track.title} missing streamUrl")
+                }
+            }
         }
-
-        val albums = apiTracks.mapNotNull { it.album }
-            .map { it.toEntity() }
-            .distinctBy { it.id }
-        if (albums.isNotEmpty()) {
-            albumDao.insertAll(albums)
-            Log.d("DB_DEBUG", "Saved albums: ${albums.size}")
-        }
-
-        val tracks = apiTracks.map { it.toEntity() }
-        if (tracks.isNotEmpty()) {
-            trackDao.insertAll(tracks)
-            Log.d("DB_DEBUG", "Saved tracks: ${tracks.size}")
+        if (trackEntities.isNotEmpty()) {
+            trackDao.insertAll(trackEntities)
+            Log.d("DB_DEBUG", "Saved tracks: ${trackEntities.size}")
         }
     }
 
-    suspend fun saveAllAlbums(albums: List<ApiAlbum>) {
-        val entities = albums.map { it.toEntity() }.distinctBy { it.id }
-        if (entities.isNotEmpty()) {
-            albumDao.insertAll(entities)
-            Log.d("DB_DEBUG", "Saved albums from saveAllAlbums: ${entities.size}")
+    private suspend fun saveAlbums(albums: List<ApiAlbum>) {
+        val albumEntities = albums.map { it.toEntity() }
+        if (albumEntities.isNotEmpty()) {
+            albumDao.insertAll(albumEntities)
+            Log.d("DB_DEBUG", "Saved albums: ${albumEntities.size}")
         }
     }
 
-    suspend fun saveAllArtists(artists: List<ApiArtist>) {
-        val entities = artists.map { it.toEntity() }.distinctBy { it.id }
-        if (entities.isNotEmpty()) {
-            artistDao.insertAll(entities)
-            Log.d("DB_DEBUG", "Saved artists from saveAllArtists: ${entities.size}")
+    private suspend fun saveArtists(artists: List<ApiArtist>) {
+        val artistEntities = artists.map { it.toEntity() }
+        if (artistEntities.isNotEmpty()) {
+            artistDao.insertAll(artistEntities)
+            Log.d("DB_DEBUG", "Saved artists: ${artistEntities.size}")
         }
-    }
-
-    suspend fun searchAll(query: String): SearchResult {
-        val tracks = trackDao.search(query)
-        val albums = albumDao.search(query)
-        val artists = artistDao.search(query)
-        Log.d("DB_DEBUG", "Search '$query' results -> tracks: ${tracks.size}, albums: ${albums.size}, artists: ${artists.size}")
-        return SearchResult(tracks, albums, artists)
     }
 
     suspend fun loadAllData(onComplete: (success: Boolean, message: String) -> Unit) {
         try {
             val letters = 'a'..'z'
+
             letters.forEach { query ->
                 Log.d("API_DEBUG", "Loading data for query: $query")
 
@@ -82,39 +64,47 @@ class MusicRepository(
                     null
                 }
 
-                tracksResponse?.data?.let { saveAllTracks(it) }
-                albumsResponse?.data?.let { saveAllAlbums(it) }
-                artistsResponse?.data?.let { saveAllArtists(it) }
+                tracksResponse?.data?.let { saveTracks(it) }
+                albumsResponse?.data?.let { saveAlbums(it) }
+                artistsResponse?.data?.let { saveArtists(it) }
             }
 
             onComplete(true, "All data loaded")
         } catch (e: Exception) {
-            Log.e("REPO_ERROR", "Error loading all data: ${e.message}")
+            Log.e("REPO_ERROR", "Error loading data: ${e.message}")
             onComplete(false, "Error loading data: ${e.message}")
         }
+    }
+
+    suspend fun searchAll(query: String): SearchResult {
+        val tracks = trackDao.search(query)
+        val albums = albumDao.search(query)
+        val artists = artistDao.search(query)
+        Log.d("DB_DEBUG", "Search '$query' results -> tracks: ${tracks.size}, albums: ${albums.size}, artists: ${artists.size}")
+        return SearchResult(tracks, albums, artists)
     }
 }
 
 fun ApiTrack.toEntity() = TrackEntity(
-    id = id ?: "UnknownTrackId",
-    title = title ?: "Unknown Title",
-    artistId = user?.id ?: "UnknownArtist",
+    id = id,
+    title = title,
+    artistId = user?.id ?: "",
     albumId = album?.id,
     genre = genre ?: "",
-    artworkUrl = artwork?.get("150x150") ?: "",
+    artworkUrl = artwork?.get("150x150"),
     streamUrl = streamUrl ?: ""
 )
 
 fun ApiAlbum.toEntity() = AlbumEntity(
-    id = id ?: "UnknownAlbum",
-    title = title ?: "Unknown Album",
-    artistId = artist.id ?: "UnknownArtist",
-    artworkUrl = artwork?.get("150x150")
+    id = id,
+    title = title,
+    artistId = artist.id,
+    artworkUrl = artwork?.get("150x150") ?: ""
 )
 
 fun ApiArtist.toEntity() = ArtistEntity(
-    id = id ?: "UnknownArtist",
-    name = name ?: "Unknown Artist",
-    handle = handle ?: "unknown_handle",
-    imageUrl = profilePicture?.get("150x150")
+    id = id,
+    name = name,
+    handle = handle ?: "",
+    imageUrl = profilePicture?.get("150x150") ?: ""
 )
