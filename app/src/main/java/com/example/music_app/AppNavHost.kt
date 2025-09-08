@@ -1,6 +1,7 @@
 package com.example.music_app
 
 import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
@@ -26,6 +27,7 @@ fun AppNavHost() {
     val context = LocalContext.current
     val db = DatabaseClient.getDatabase(context)
     val authViewModel = remember { AuthViewModel(db) }
+    val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
 
     NavHost(navController = navController, startDestination = "login") {
         // Login
@@ -33,20 +35,25 @@ fun AppNavHost() {
             LoginScreen(navController) { email, password ->
                 authViewModel.loginUser(email, password) { success, message, userId ->
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    if (success) {
-                        navController.navigate("home"){
+                    if (success && userId != null) {
+                        sharedPrefs.edit().putInt("logged_in_user_id", userId).apply()
+
+                        navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
                 }
             }
         }
+
         // Register
         composable("register") {
             RegisterScreen(navController) { email, username, password, role: UserRole ->
                 authViewModel.registerUser(username, email, password, role) { success, message, userId ->
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    if (success) {
+                    if (success && userId != null) {
+                        sharedPrefs.edit().putInt("logged_in_user_id", userId).apply()
+
                         navController.navigate("home") {
                             popUpTo("register") { inclusive = true }
                         }
@@ -54,16 +61,26 @@ fun AppNavHost() {
                 }
             }
         }
+
         // Home
         composable("home") {
-            val db = DatabaseClient.getDatabase(context)
             val repository = MusicRepository(
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
                 albumDao = db.albumDao()
             )
 
-            HomeScreen(repository = repository)
+            val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
+
+            val userViewModel: UserViewModel = viewModel(
+                factory = UserViewModelFactory(
+                    application = context.applicationContext as Application,
+                    db = db,
+                    currentUserId = currentUserId
+                )
+            )
+
+            HomeScreen(navController, repository, userViewModel)
         }
 
         // Profile
@@ -78,8 +95,10 @@ fun AppNavHost() {
                     )
                 )
                 UserProfileScreen(
+                    navController = navController,
                     userViewModel = userViewModel,
                     onLogout = {
+                        sharedPrefs.edit().remove("logged_in_user_id").apply()
                         authViewModel.clearLoggedInUser()
                         navController.navigate("login") {
                             popUpTo("profile") { inclusive = true }
