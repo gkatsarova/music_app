@@ -15,8 +15,8 @@ import com.example.music_app.data.repository.dto.ApiTrack
 
 class MusicRepository(
     private val trackDao: TrackDao,
-    private val artistDao: ArtistDao,
-    private val albumDao: AlbumDao
+    val artistDao: ArtistDao,
+    val albumDao: AlbumDao
 ) {
     private val api: AudiusApi = RetrofitInstance.api
 
@@ -108,6 +108,10 @@ class MusicRepository(
         val artists = artistDao.search(query)
         Log.d("DB_DEBUG", "Search '$query' results -> tracks: ${tracks.size}, albums: ${albums.size}, artists: ${artists.size}")
         return SearchResult(tracks, albums, artists)
+    }
+
+    suspend fun getTrackById(id: String): TrackEntity? {
+        return trackDao.getTrackById(id)
     }
 }
 

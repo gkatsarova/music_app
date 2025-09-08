@@ -1,5 +1,6 @@
 package com.example.music_app.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.music_app.data.repository.SearchResult
@@ -66,7 +68,8 @@ fun SearchBar(
 @Composable
 fun MusicList(
     loading: Boolean,
-    searchResult: SearchResult
+    searchResult: SearchResult,
+    navController: NavController
 ) {
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -81,15 +84,19 @@ fun MusicList(
             items(searchResult.tracks) { track ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            navController.navigate("trackDetails/${track.id}")
+                        }
+                        .padding(4.dp)
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(track.artworkUrl)
                             .crossfade(true)
-
-                            .placeholder(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
-                            .error(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                            .placeholder(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                            .error(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
                             .build(),
                         contentDescription = track.title,
                         contentScale = ContentScale.Crop,

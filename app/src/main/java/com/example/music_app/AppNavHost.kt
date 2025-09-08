@@ -16,9 +16,12 @@ import com.example.music_app.data.user.UserRole
 import com.example.music_app.ui.screens.HomeScreen
 import com.example.music_app.ui.screens.LoginScreen
 import com.example.music_app.ui.screens.RegisterScreen
+import com.example.music_app.ui.screens.TrackDetailsScreen
 import com.example.music_app.ui.screens.UserProfileScreen
 import com.example.music_app.viewmodel.AuthViewModel
+import com.example.music_app.viewmodel.TrackViewModel
 import com.example.music_app.viewmodel.UserViewModel
+import com.example.music_app.viewmodel.factory.TrackViewModelFactory
 import com.example.music_app.viewmodel.factory.UserViewModelFactory
 
 @Composable
@@ -29,7 +32,10 @@ fun AppNavHost() {
     val authViewModel = remember { AuthViewModel(db) }
     val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
 
-    NavHost(navController = navController, startDestination = "login") {
+    val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
+    val startDestination = if (currentUserId != -1) "home" else "login"
+
+    NavHost(navController = navController, startDestination = startDestination) {
         // Login
         composable("login") {
             LoginScreen(navController) { email, password ->
@@ -119,6 +125,22 @@ fun AppNavHost() {
                     popUpTo("profile") { inclusive = true }
                 }
             }
+        }
+
+        //Track Details
+        composable("trackDetails/{trackId}") { backStackEntry ->
+            val trackId = backStackEntry.arguments?.getString("trackId") ?: ""
+            val repository = MusicRepository(
+                trackDao = db.trackDao(),
+                artistDao = db.artistDao(),
+                albumDao = db.albumDao()
+            )
+
+            val trackViewModel: TrackViewModel = viewModel(
+                factory = TrackViewModelFactory(repository)
+            )
+
+            TrackDetailsScreen(trackId = trackId, viewModel = trackViewModel)
         }
     }
 }

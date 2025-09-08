@@ -19,4 +19,7 @@ interface TrackDao {
 
     @Query("SELECT * FROM tracks WHERE title LIKE '%' || :query || '%'")
     suspend fun search(query: String): List<TrackEntity>
+
+    @Query("SELECT * FROM tracks WHERE id = :id LIMIT 1")
+    suspend fun getTrackById(id: String): TrackEntity?
 }

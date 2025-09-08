@@ -1,9 +1,11 @@
 package com.example.music_app.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.music_app.data.repository.MusicRepository
@@ -27,17 +29,21 @@ fun HomeScreen(navController: NavController, repository: MusicRepository, userVi
     )
 
     var query by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(true) }
     var selectedIndex by remember { mutableIntStateOf(2) }
 
     val searchResult by musicViewModel.searchResult.collectAsState()
     val userState = userViewModel.user.collectAsState()
     val user = userState.value
 
+    val context = LocalContext.current
+    val loading by musicViewModel.loading.collectAsState()
+
     LaunchedEffect(Unit) {
         homeViewModel.saveSampleData()
-        musicViewModel.loadAllData {
-            loading = false
+        musicViewModel.loadAllData{ message ->
+            if (message.isNotEmpty()) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -72,7 +78,8 @@ fun HomeScreen(navController: NavController, repository: MusicRepository, userVi
             if (query.isNotEmpty()) {
                 MusicList(
                     loading = loading,
-                    searchResult = searchResult
+                    searchResult = searchResult,
+                    navController = navController
                 )
             }
         }

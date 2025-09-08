@@ -11,9 +11,22 @@ import kotlinx.coroutines.launch
 class MusicViewModel(private val repository: MusicRepository) : ViewModel() {
     private val _searchResult = MutableStateFlow(SearchResult(emptyList(), emptyList(), emptyList()))
     val searchResult: StateFlow<SearchResult> = _searchResult
+
+    private var isDataLoaded = false
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading
+
     fun loadAllData(onComplete: (message: String) -> Unit) {
+        if (isDataLoaded) {
+            onComplete("")
+            return
+        }
+
         viewModelScope.launch {
+            _loading.value = true
             repository.loadAllData { success, message ->
+                _loading.value = false
+                if (success) isDataLoaded = true
                 onComplete(message)
             }
         }
