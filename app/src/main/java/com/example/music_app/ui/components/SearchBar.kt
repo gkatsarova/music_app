@@ -1,5 +1,6 @@
 package com.example.music_app.ui.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.music_app.data.repository.SearchResult
+import com.example.music_app.R
 
 @Composable
 fun SearchBar(
@@ -66,6 +68,8 @@ fun MusicList(
     loading: Boolean,
     searchResult: SearchResult
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
     if (loading) {
         Text("Loading data...", modifier = Modifier.padding(16.dp))
     } else {
@@ -83,6 +87,9 @@ fun MusicList(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(track.artworkUrl)
                             .crossfade(true)
+
+                            .placeholder(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                            .error(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
                             .build(),
                         contentDescription = track.title,
                         contentScale = ContentScale.Crop,
@@ -104,6 +111,8 @@ fun MusicList(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(album.artworkUrl)
                             .crossfade(true)
+                            .placeholder(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                            .error(if(isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_gray)
                             .build(),
                         contentDescription = album.title,
                         contentScale = ContentScale.Crop,
@@ -125,6 +134,8 @@ fun MusicList(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(artist.imageUrl)
                             .crossfade(true)
+                            .placeholder(if(isDarkTheme) R.drawable.ic_user_avatar_gray else R.drawable.ic_user_avatar_black)
+                            .error(if(isDarkTheme) R.drawable.ic_user_avatar_gray else R.drawable.ic_user_avatar_black)
                             .build(),
                         contentDescription = artist.name,
                         contentScale = ContentScale.Crop,

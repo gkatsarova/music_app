@@ -3,7 +3,15 @@ package com.example.music_app.data.repository
 import android.util.Log
 import com.example.music_app.data.api.AudiusApi
 import com.example.music_app.data.api.RetrofitInstance
-import com.example.music_app.data.music.*
+import com.example.music_app.data.music.dao.AlbumDao
+import com.example.music_app.data.music.dao.ArtistDao
+import com.example.music_app.data.music.dao.TrackDao
+import com.example.music_app.data.music.entity.AlbumEntity
+import com.example.music_app.data.music.entity.ArtistEntity
+import com.example.music_app.data.music.entity.TrackEntity
+import com.example.music_app.data.repository.dto.ApiAlbum
+import com.example.music_app.data.repository.dto.ApiArtist
+import com.example.music_app.data.repository.dto.ApiTrack
 
 class MusicRepository(
     private val trackDao: TrackDao,
@@ -74,6 +82,24 @@ class MusicRepository(
             Log.e("REPO_ERROR", "Error loading data: ${e.message}")
             onComplete(false, "Error loading data: ${e.message}")
         }
+    }
+
+    suspend fun saveTrack(track: ApiTrack) {
+        val entity = track.toEntity()
+        trackDao.insert(entity)
+        Log.d("DB_DEBUG", "Saved single track: ${entity.title}")
+    }
+
+    suspend fun saveAlbum(album: ApiAlbum) {
+        val entity = album.toEntity()
+        albumDao.insert(entity)
+        Log.d("DB_DEBUG", "Saved single album: ${entity.title}")
+    }
+
+    suspend fun saveArtist(artist: ApiArtist) {
+        val entity = artist.toEntity()
+        artistDao.insert(entity)
+        Log.d("DB_DEBUG", "Saved single artist: ${entity.name}")
     }
 
     suspend fun searchAll(query: String): SearchResult {

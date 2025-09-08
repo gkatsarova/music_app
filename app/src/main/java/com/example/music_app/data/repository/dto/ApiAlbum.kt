@@ -1,4 +1,6 @@
-package com.example.music_app.data.repository
+package com.example.music_app.data.repository.dto
+
+import com.example.music_app.data.repository.dto.ApiArtist
 
 data class ApiAlbum(
     val id: String,

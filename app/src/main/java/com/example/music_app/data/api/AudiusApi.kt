@@ -1,8 +1,8 @@
 package com.example.music_app.data.api
 
-import com.example.music_app.data.repository.AlbumsResponse
-import com.example.music_app.data.repository.ArtistsResponse
-import com.example.music_app.data.repository.TracksResponse
+import com.example.music_app.data.repository.response.AlbumsResponse
+import com.example.music_app.data.repository.response.ArtistsResponse
+import com.example.music_app.data.repository.response.TracksResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

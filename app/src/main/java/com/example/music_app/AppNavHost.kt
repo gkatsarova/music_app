@@ -19,7 +19,7 @@ import com.example.music_app.ui.screens.RegisterScreen
 import com.example.music_app.ui.screens.UserProfileScreen
 import com.example.music_app.viewmodel.AuthViewModel
 import com.example.music_app.viewmodel.UserViewModel
-import com.example.music_app.viewmodel.UserViewModelFactory
+import com.example.music_app.viewmodel.factory.UserViewModelFactory
 
 @Composable
 fun AppNavHost() {
@@ -94,8 +94,16 @@ fun AppNavHost() {
                         currentUserId = userId
                     )
                 )
+
+                val repository = MusicRepository(
+                    trackDao = db.trackDao(),
+                    artistDao = db.artistDao(),
+                    albumDao = db.albumDao()
+                )
+
                 UserProfileScreen(
                     navController = navController,
+                    repository = repository,
                     userViewModel = userViewModel,
                     onLogout = {
                         sharedPrefs.edit().remove("logged_in_user_id").apply()

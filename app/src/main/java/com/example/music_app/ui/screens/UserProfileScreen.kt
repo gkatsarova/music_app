@@ -28,20 +28,34 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.music_app.R
+import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.BottomNavBar
+import com.example.music_app.ui.components.MusicList
+import com.example.music_app.ui.components.SearchBar
+import com.example.music_app.viewmodel.MusicViewModel
 import com.example.music_app.viewmodel.UserViewModel
+import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 
 @Composable
 fun UserProfileScreen(
     navController: NavController,
+    repository: MusicRepository,
     userViewModel: UserViewModel = viewModel(),
     onLogout: () -> Unit
 ) {
+    val musicViewModel: MusicViewModel = viewModel(
+        factory = MusicViewModelFactory(repository)
+    )
+
+    var query by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(true) }
+    var selectedIndex by remember { mutableIntStateOf(4) }
+
+    val searchResult by musicViewModel.searchResult.collectAsState()
     val user by userViewModel.user.collectAsState()
     val deleteState by userViewModel.deleteProfileState.collectAsState()
     val logoutState by userViewModel.logoutState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableIntStateOf(4) }
 
     val context = LocalContext.current
 
@@ -67,6 +81,12 @@ fun UserProfileScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        musicViewModel.loadAllData {
+            loading = false
+        }
+    }
+
     Scaffold(
         bottomBar = {
             BottomNavBar(
@@ -79,150 +99,159 @@ fun UserProfileScreen(
             )
         }
     ) { innerPadding ->
-        Surface(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
-            color = MaterialTheme.colorScheme.background
+                .padding(innerPadding)
         ) {
-            user?.let { u ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    val isDarkTheme = isSystemInDarkTheme()
+            SearchBar(
+                query = query,
+                onQueryChange = { newQuery ->
+                    query = newQuery
+                    musicViewModel.search(newQuery)
+                },
+                onClose = { query = "" }
+            )
 
-                    val avatarRes = if (isDarkTheme) {
-                        R.drawable.ic_user_avatar_gray
-                    } else {
-                        R.drawable.ic_user_avatar_black
-                    }
-
-                    AsyncImage(
-                        model = u.profilePicture ?: avatarRes,
-                        contentDescription = "Profile Picture",
+            if (query.isNotEmpty()) {
+                MusicList(
+                    loading = loading,
+                    searchResult = searchResult
+                )
+            } else {
+                user?.let { u ->
+                    Column(
                         modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .clickable { permissionLauncher.launch(permission) },
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = avatarRes),
-                        error = painterResource(id = avatarRes)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        shape = RoundedCornerShape(35.dp)
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Top
                     ) {
-                        Column(
+                        val isDarkTheme = isSystemInDarkTheme()
+                        val avatarRes = if (isDarkTheme) {
+                            R.drawable.ic_user_avatar_gray
+                        } else {
+                            R.drawable.ic_user_avatar_black
+                        }
+
+                        AsyncImage(
+                            model = u.profilePicture ?: avatarRes,
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .clickable { permissionLauncher.launch(permission) },
+                            contentScale = ContentScale.Crop,
+                            placeholder = painterResource(id = avatarRes),
+                            error = painterResource(id = avatarRes)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .padding(horizontal = 16.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            shape = RoundedCornerShape(35.dp)
                         ) {
-                            Text(
-                                text = u.username,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.LightGray
-                            )
-                            Text(
-                                text = u.email,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.LightGray
-                            )
-                            Row(
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Button(
-                                    onClick = { userViewModel.logoutUser() },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent
-                                    )
+                                Text(
+                                    text = u.username,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.LightGray
+                                )
+                                Text(
+                                    text = u.email,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.LightGray
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    Button(
+                                        onClick = { userViewModel.logoutUser() },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Transparent
+                                        )
                                     ) {
-                                        Icon(
-                                            painter = if (isSystemInDarkTheme()) {
-                                                painterResource(id = R.drawable.ic_logout_gray)
-                                            } else {
-                                                painterResource(id = R.drawable.ic_logout_black)
-                                            },
-                                            contentDescription = "Logout",
-                                            modifier = Modifier.size(50.dp),
-                                            tint = Color.Unspecified
-                                        )
-                                        Text(
-                                            "Logout",
-                                            fontSize = 16.sp,
-                                            color = Color.LightGray,
-                                            textAlign = TextAlign.Center
-                                        )
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                painter = if (isDarkTheme) {
+                                                    painterResource(id = R.drawable.ic_logout_gray)
+                                                } else {
+                                                    painterResource(id = R.drawable.ic_logout_black)
+                                                },
+                                                contentDescription = "Logout",
+                                                modifier = Modifier.size(50.dp),
+                                                tint = Color.Unspecified
+                                            )
+                                            Text(
+                                                "Logout",
+                                                fontSize = 16.sp,
+                                                color = Color.LightGray,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
-                                }
 
-                                Spacer(modifier = Modifier.width(16.dp))
+                                    Spacer(modifier = Modifier.width(16.dp))
 
-                                Button(
-                                    onClick = { showDeleteDialog = true },
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color.Transparent
-                                    )
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    Button(
+                                        onClick = { showDeleteDialog = true },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.Transparent
+                                        )
                                     ) {
-                                        Icon(
-                                            painter = if (isSystemInDarkTheme()) {
-                                                painterResource(id = R.drawable.ic_delete_gray)
-                                            } else {
-                                                painterResource(id = R.drawable.ic_delete_black)
-                                            },
-                                            contentDescription = "Delete Account",
-                                            modifier = Modifier.size(50.dp),
-                                            tint = Color.Unspecified
-                                        )
-                                        Text(
-                                            "Delete Account",
-                                            fontSize = 16.sp,
-                                            color = Color.LightGray,
-                                            textAlign = TextAlign.Center
-                                        )
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Icon(
+                                                painter = if (isDarkTheme) {
+                                                    painterResource(id = R.drawable.ic_delete_gray)
+                                                } else {
+                                                    painterResource(id = R.drawable.ic_delete_black)
+                                                },
+                                                contentDescription = "Delete Account",
+                                                modifier = Modifier.size(50.dp),
+                                                tint = Color.Unspecified
+                                            )
+                                            Text(
+                                                "Delete Account",
+                                                fontSize = 16.sp,
+                                                color = Color.LightGray,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            } ?: run {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                } ?: run {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator()
-                        Text("Loading profile...", style = MaterialTheme.typography.bodyMedium)
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            CircularProgressIndicator()
+                            Text("Loading profile...", style = MaterialTheme.typography.bodyMedium)
+                        }
                     }
                 }
             }

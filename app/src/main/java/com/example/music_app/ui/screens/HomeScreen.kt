@@ -10,14 +10,20 @@ import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.MusicList
 import com.example.music_app.ui.components.SearchBar
 import com.example.music_app.ui.components.BottomNavBar
+import com.example.music_app.viewmodel.HomeViewModel
 import com.example.music_app.viewmodel.MusicViewModel
-import com.example.music_app.viewmodel.MusicViewModelFactory
+import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 import com.example.music_app.viewmodel.UserViewModel
+import com.example.music_app.viewmodel.factory.HomeViewModelFactory
 
 @Composable
 fun HomeScreen(navController: NavController, repository: MusicRepository, userViewModel: UserViewModel) {
     val musicViewModel: MusicViewModel = viewModel(
         factory = MusicViewModelFactory(repository)
+    )
+
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(repository)
     )
 
     var query by remember { mutableStateOf("") }
@@ -29,6 +35,7 @@ fun HomeScreen(navController: NavController, repository: MusicRepository, userVi
     val user = userState.value
 
     LaunchedEffect(Unit) {
+        homeViewModel.saveSampleData()
         musicViewModel.loadAllData {
             loading = false
         }

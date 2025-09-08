@@ -1,4 +1,4 @@
-package com.example.music_app.data.repository
+package com.example.music_app.data.repository.dto
 
 data class ApiArtist(
     val id: String,
