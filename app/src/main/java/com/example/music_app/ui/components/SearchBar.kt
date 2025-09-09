@@ -112,7 +112,12 @@ fun MusicList(
             items(searchResult.albums) { album ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable{
+                            navController.navigate("albumDetails/${album.id}")
+                        }
+                        .padding(4.dp)
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)

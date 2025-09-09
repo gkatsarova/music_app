@@ -14,7 +14,7 @@ import com.example.music_app.data.repository.dto.ApiArtist
 import com.example.music_app.data.repository.dto.ApiTrack
 
 class MusicRepository(
-    private val trackDao: TrackDao,
+    val trackDao: TrackDao,
     val artistDao: ArtistDao,
     val albumDao: AlbumDao
 ) {
