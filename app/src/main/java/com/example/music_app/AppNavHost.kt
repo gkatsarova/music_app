@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.music_app.data.DatabaseClient
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.data.user.UserRole
+import com.example.music_app.ui.screens.AlbumDetailsScreen
 import com.example.music_app.ui.screens.HomeScreen
 import com.example.music_app.ui.screens.LoginScreen
 import com.example.music_app.ui.screens.RegisterScreen
@@ -145,6 +146,12 @@ fun AppNavHost() {
                 viewModel = trackViewModel,
                 navController = navController
             )
+        }
+
+        // Album Details
+        composable("albumDetails/{albumId}") { backStackEntry ->
+            val albumId = backStackEntry.arguments?.getString("albumId") ?: ""
+            AlbumDetailsScreen(albumId = albumId, navController = navController)
         }
     }
 }
