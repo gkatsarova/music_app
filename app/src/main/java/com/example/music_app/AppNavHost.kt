@@ -21,6 +21,7 @@ import com.example.music_app.ui.screens.RegisterScreen
 import com.example.music_app.ui.screens.TrackDetailsScreen
 import com.example.music_app.ui.screens.UserProfileScreen
 import com.example.music_app.viewmodel.AuthViewModel
+import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.TrackViewModel
 import com.example.music_app.viewmodel.UserViewModel
 import com.example.music_app.viewmodel.factory.TrackViewModelFactory
@@ -36,6 +37,8 @@ fun AppNavHost() {
 
     val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
     val startDestination = if (currentUserId != -1) "home" else "login"
+
+    val playingTrackViewModel: PlayingTrackViewModel = viewModel()
 
     NavHost(navController = navController, startDestination = startDestination) {
         // Login
@@ -89,7 +92,7 @@ fun AppNavHost() {
                 )
             )
 
-            HomeScreen(navController, repository, userViewModel)
+            HomeScreen(navController, repository, userViewModel, playingTrackViewModel)
         }
 
         // Profile
@@ -121,7 +124,8 @@ fun AppNavHost() {
                         navController.navigate("login") {
                             popUpTo("profile") { inclusive = true }
                         }
-                    }
+                    },
+                    playingTrackViewModel = playingTrackViewModel
                 )
             } else {
                 Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
@@ -148,20 +152,21 @@ fun AppNavHost() {
             TrackDetailsScreen(
                 trackId = trackId,
                 viewModel = trackViewModel,
-                navController = navController
+                navController = navController,
+                playingTrackViewModel = playingTrackViewModel
             )
         }
 
         // Album Details
         composable("albumDetails/{albumId}") { backStackEntry ->
             val albumId = backStackEntry.arguments?.getString("albumId") ?: ""
-            AlbumDetailsScreen(albumId = albumId, navController = navController)
+            AlbumDetailsScreen(albumId = albumId, navController = navController, playingTrackViewModel = playingTrackViewModel)
         }
 
         // Artist Details
         composable("artistDetails/{artistId}") { backStackEntry ->
             val artistId = backStackEntry.arguments?.getString("artistId") ?: ""
-            ArtistDetailsScreen(artistId = artistId, navController = navController)
+            ArtistDetailsScreen(artistId = artistId, navController = navController, playingTrackViewModel = playingTrackViewModel)
         }
     }
 }

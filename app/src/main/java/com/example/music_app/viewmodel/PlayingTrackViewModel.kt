@@ -4,11 +4,14 @@ import android.media.MediaPlayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.music_app.data.music.entity.TrackEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PlayingTrackViewModel: ViewModel() {
+@HiltViewModel
+class PlayingTrackViewModel @Inject constructor() : ViewModel() {
     private val _currentTrack = MutableStateFlow<TrackEntity?>(null)
     val currentTrack: StateFlow<TrackEntity?> = _currentTrack
 
@@ -18,13 +21,17 @@ class PlayingTrackViewModel: ViewModel() {
     private val _mediaPlayer = MutableStateFlow<MediaPlayer?>(null)
     val mediaPlayer: StateFlow<MediaPlayer?> = _mediaPlayer
 
+    private val _artistName = MutableStateFlow<String?>(null)
+    val artistName: StateFlow<String?> = _artistName
+
     private val _showController = MutableStateFlow(false)
     val showController: StateFlow<Boolean> = _showController
 
-    fun playTrack(track: TrackEntity) {
+    fun playTrack(track: TrackEntity, artistName: String? = null) {
         viewModelScope.launch {
             _currentTrack.value = track
             _showController.value = true
+            _artistName.value = artistName
 
             _mediaPlayer.value?.release()
 
