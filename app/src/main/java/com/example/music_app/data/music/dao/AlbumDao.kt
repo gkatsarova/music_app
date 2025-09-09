@@ -16,4 +16,7 @@ interface AlbumDao {
 
     @Query("SELECT * FROM albums WHERE title LIKE '%' || :query || '%'")
     suspend fun search(query: String): List<AlbumEntity>
+
+    @Query("SELECT * FROM albums WHERE id = :id LIMIT 1")
+    suspend fun getAlbumById(id: String): AlbumEntity?
 }

@@ -48,7 +48,7 @@ fun UserProfileScreen(
     )
 
     var query by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(true) }
+    val loading by musicViewModel.loading.collectAsState()
     var selectedIndex by remember { mutableIntStateOf(4) }
 
     val searchResult by musicViewModel.searchResult.collectAsState()
@@ -81,12 +81,6 @@ fun UserProfileScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        musicViewModel.loadAllData {
-            loading = false
-        }
-    }
-
     Scaffold(
         bottomBar = {
             BottomNavBar(
@@ -116,7 +110,8 @@ fun UserProfileScreen(
             if (query.isNotEmpty()) {
                 MusicList(
                     loading = loading,
-                    searchResult = searchResult
+                    searchResult = searchResult,
+                    navController = navController
                 )
             } else {
                 user?.let { u ->

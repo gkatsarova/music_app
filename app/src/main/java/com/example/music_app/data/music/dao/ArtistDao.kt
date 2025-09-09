@@ -16,4 +16,7 @@ interface ArtistDao {
 
     @Query("SELECT * FROM artists WHERE name LIKE '%' || :query || '%'")
     suspend fun search(query: String): List<ArtistEntity>
+
+    @Query("SELECT * FROM artists WHERE id = :id LIMIT 1")
+    suspend fun getArtistById(id: String): ArtistEntity?
 }
