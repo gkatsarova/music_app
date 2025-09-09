@@ -140,7 +140,11 @@ fun AppNavHost() {
                 factory = TrackViewModelFactory(repository)
             )
 
-            TrackDetailsScreen(trackId = trackId, viewModel = trackViewModel)
+            TrackDetailsScreen(
+                trackId = trackId,
+                viewModel = trackViewModel,
+                navController = navController
+            )
         }
     }
 }
