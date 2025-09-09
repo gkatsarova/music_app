@@ -1,5 +1,6 @@
 package com.example.music_app.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.example.music_app.data.api.AudiusApi
 import com.example.music_app.data.api.RetrofitInstance
@@ -16,7 +17,8 @@ import com.example.music_app.data.repository.dto.ApiTrack
 class MusicRepository(
     val trackDao: TrackDao,
     val artistDao: ArtistDao,
-    val albumDao: AlbumDao
+    val albumDao: AlbumDao,
+    context: Context
 ) {
     private val api: AudiusApi = RetrofitInstance.api
 
@@ -112,6 +114,17 @@ class MusicRepository(
 
     suspend fun getTrackById(id: String): TrackEntity? {
         return trackDao.getTrackById(id)
+    }
+
+    suspend fun hasData(): Boolean {
+        val trackCount = trackDao.getAll().size
+        return trackCount > 0
+    }
+
+    private val sharedPreferences = context.getSharedPreferences("app_data", Context.MODE_PRIVATE)
+
+    fun setDataLoaded(isLoaded: Boolean) {
+        sharedPreferences.edit().putBoolean("is_data_loaded", isLoaded).apply()
     }
 }
 

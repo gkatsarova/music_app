@@ -14,6 +14,7 @@ import com.example.music_app.data.DatabaseClient
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.data.user.UserRole
 import com.example.music_app.ui.screens.AlbumDetailsScreen
+import com.example.music_app.ui.screens.ArtistDetailsScreen
 import com.example.music_app.ui.screens.HomeScreen
 import com.example.music_app.ui.screens.LoginScreen
 import com.example.music_app.ui.screens.RegisterScreen
@@ -74,7 +75,8 @@ fun AppNavHost() {
             val repository = MusicRepository(
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
-                albumDao = db.albumDao()
+                albumDao = db.albumDao(),
+                context = context
             )
 
             val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
@@ -105,7 +107,8 @@ fun AppNavHost() {
                 val repository = MusicRepository(
                     trackDao = db.trackDao(),
                     artistDao = db.artistDao(),
-                    albumDao = db.albumDao()
+                    albumDao = db.albumDao(),
+                    context = context
                 )
 
                 UserProfileScreen(
@@ -134,7 +137,8 @@ fun AppNavHost() {
             val repository = MusicRepository(
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
-                albumDao = db.albumDao()
+                albumDao = db.albumDao(),
+                context = context
             )
 
             val trackViewModel: TrackViewModel = viewModel(
@@ -152,6 +156,12 @@ fun AppNavHost() {
         composable("albumDetails/{albumId}") { backStackEntry ->
             val albumId = backStackEntry.arguments?.getString("albumId") ?: ""
             AlbumDetailsScreen(albumId = albumId, navController = navController)
+        }
+
+        // Artist Details
+        composable("artistDetails/{artistId}") { backStackEntry ->
+            val artistId = backStackEntry.arguments?.getString("artistId") ?: ""
+            ArtistDetailsScreen(artistId = artistId, navController = navController)
         }
     }
 }
