@@ -1,7 +1,6 @@
 package com.example.music_app.ui.screens
 
 import android.content.Context
-import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,14 +31,17 @@ import com.example.music_app.data.music.entity.TrackEntity
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.BottomNavBar
 import com.example.music_app.ui.components.MusicList
+import com.example.music_app.ui.components.PlayingTrack
 import com.example.music_app.ui.components.SearchBar
 import com.example.music_app.viewmodel.MusicViewModel
+import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 
 @Composable
 fun ArtistDetailsScreen(
     artistId: String,
-    navController: NavController
+    navController: NavController,
+    playingTrackViewModel: PlayingTrackViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val isDarkTheme = isSystemInDarkTheme()
@@ -65,8 +67,9 @@ fun ArtistDetailsScreen(
     val searchResult by musicViewModel.searchResult.collectAsState()
     val loading by musicViewModel.loading.collectAsState()
 
-    var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
-    var isPlaying by remember { mutableStateOf(false) }
+    val currentTrack by playingTrackViewModel.currentTrack.collectAsState()
+    val isPlaying by playingTrackViewModel.isPlaying.collectAsState()
+    val showController by playingTrackViewModel.showController.collectAsState()
 
     val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
     val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
@@ -77,23 +80,31 @@ fun ArtistDetailsScreen(
         tracks = repository.trackDao.getAll().filter { it.artistId == artistId }
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer?.release()
-            mediaPlayer = null
-        }
-    }
-
     Scaffold(
         bottomBar = {
-            BottomNavBar(
-                navController = navController,
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                },
-                userId = currentUserId
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            ) {
+                if (showController) {
+                    PlayingTrack(
+                        viewModel = playingTrackViewModel,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BottomNavBar(
+                    navController = navController,
+                    selectedIndex = selectedIndex,
+                    onItemSelected = { index ->
+                        selectedIndex = index
+                    },
+                    userId = currentUserId
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -257,25 +268,17 @@ fun ArtistDetailsScreen(
 
                                         if (!track.streamUrl.isNullOrEmpty()) {
                                             IconButton(onClick = {
-                                                if (isPlaying) {
-                                                    mediaPlayer?.pause()
+                                                if (isPlaying && currentTrack?.id == track.id) {
+                                                    playingTrackViewModel.pause()
                                                 } else {
-                                                    mediaPlayer?.release()
-                                                    mediaPlayer = MediaPlayer().apply {
-                                                        setDataSource(track.streamUrl)
-                                                        setOnPreparedListener {
-                                                            start()
-                                                            isPlaying = true
-                                                        }
-                                                        prepareAsync()
-                                                    }
+                                                    playingTrackViewModel.playTrack(track, artist?.name)
                                                 }
                                             }) {
                                                 Image(
                                                     painter = painterResource(
                                                         id = if (isDarkTheme) R.drawable.ic_play_gray else R.drawable.ic_play_black
                                                     ),
-                                                    contentDescription = if (isPlaying) "Pause" else "Play",
+                                                    contentDescription = if (isPlaying && currentTrack?.id == track.id) "Pause" else "Play",
                                                     modifier = Modifier.size(40.dp)
                                                 )
                                             }

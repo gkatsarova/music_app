@@ -81,8 +81,7 @@ fun TrackDetailsScreen(
                 if (showController) {
                     PlayingTrack(
                         viewModel = playingTrackViewModel,
-                        modifier = Modifier.fillMaxWidth(),
-                        artistName = trackUi?.artistName
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
@@ -208,7 +207,7 @@ fun TrackDetailsScreen(
                                         if (isPlaying && currentTrack?.id == t.id) {
                                             playingTrackViewModel.pause()
                                         } else {
-                                            playingTrackViewModel.playTrack(t)
+                                            playingTrackViewModel.playTrack(t, ui.artistName)
                                         }
                                     },
                                     modifier = Modifier.size(60.dp)

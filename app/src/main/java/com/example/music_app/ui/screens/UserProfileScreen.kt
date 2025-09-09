@@ -31,8 +31,10 @@ import com.example.music_app.R
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.BottomNavBar
 import com.example.music_app.ui.components.MusicList
+import com.example.music_app.ui.components.PlayingTrack
 import com.example.music_app.ui.components.SearchBar
 import com.example.music_app.viewmodel.MusicViewModel
+import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.UserViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 
@@ -41,7 +43,8 @@ fun UserProfileScreen(
     navController: NavController,
     repository: MusicRepository,
     userViewModel: UserViewModel = viewModel(),
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    playingTrackViewModel: PlayingTrackViewModel = viewModel()
 ) {
     val musicViewModel: MusicViewModel = viewModel(
         factory = MusicViewModelFactory(repository)
@@ -58,6 +61,8 @@ fun UserProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    val showController by playingTrackViewModel.showController.collectAsState()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -83,14 +88,29 @@ fun UserProfileScreen(
 
     Scaffold(
         bottomBar = {
-            BottomNavBar(
-                navController = navController,
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                },
-                userId = user?.uid
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            ) {
+                if (showController) {
+                    PlayingTrack(
+                        viewModel = playingTrackViewModel,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BottomNavBar(
+                    navController = navController,
+                    selectedIndex = selectedIndex,
+                    onItemSelected = { index ->
+                        selectedIndex = index
+                    },
+                    userId = user?.uid
+                )
+            }
         }
     ) { innerPadding ->
         Column(

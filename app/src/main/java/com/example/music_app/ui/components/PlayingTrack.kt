@@ -20,12 +20,12 @@ import com.example.music_app.viewmodel.PlayingTrackViewModel
 @Composable
 fun PlayingTrack(
     viewModel: PlayingTrackViewModel,
-    modifier: Modifier = Modifier,
-    artistName: String? = null
+    modifier: Modifier = Modifier
 ) {
     val currentTrack by viewModel.currentTrack.collectAsState()
     val isPlaying by viewModel.isPlaying.collectAsState()
     val showController by viewModel.showController.collectAsState()
+    val artistName by viewModel.artistName.collectAsState()
 
     if (currentTrack == null || !showController) return
 
