@@ -75,7 +75,8 @@ fun AppNavHost() {
             val repository = MusicRepository(
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
-                albumDao = db.albumDao()
+                albumDao = db.albumDao(),
+                context = context
             )
 
             val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
@@ -106,7 +107,8 @@ fun AppNavHost() {
                 val repository = MusicRepository(
                     trackDao = db.trackDao(),
                     artistDao = db.artistDao(),
-                    albumDao = db.albumDao()
+                    albumDao = db.albumDao(),
+                    context = context
                 )
 
                 UserProfileScreen(
@@ -135,7 +137,8 @@ fun AppNavHost() {
             val repository = MusicRepository(
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
-                albumDao = db.albumDao()
+                albumDao = db.albumDao(),
+                context = context
             )
 
             val trackViewModel: TrackViewModel = viewModel(

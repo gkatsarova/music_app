@@ -41,7 +41,8 @@ fun TrackDetailsScreen(
     val repository = MusicRepository(
         trackDao = db.trackDao(),
         artistDao = db.artistDao(),
-        albumDao = db.albumDao()
+        albumDao = db.albumDao(),
+        context = context
     )
 
     val musicViewModel: MusicViewModel = viewModel(
