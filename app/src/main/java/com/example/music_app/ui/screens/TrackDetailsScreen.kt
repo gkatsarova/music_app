@@ -1,7 +1,6 @@
 package com.example.music_app.ui.screens
 
 import android.content.Context
-import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -25,8 +24,10 @@ import com.example.music_app.data.DatabaseClient
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.BottomNavBar
 import com.example.music_app.ui.components.MusicList
+import com.example.music_app.ui.components.PlayingTrack
 import com.example.music_app.ui.components.SearchBar
 import com.example.music_app.viewmodel.MusicViewModel
+import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.TrackViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 
@@ -34,7 +35,8 @@ import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 fun TrackDetailsScreen(
     trackId: String,
     viewModel: TrackViewModel,
-    navController: NavController
+    navController: NavController,
+    playingTrackViewModel: PlayingTrackViewModel = viewModel()
 ) {
     val trackUi by viewModel.track.collectAsState()
     val context = LocalContext.current
@@ -55,8 +57,9 @@ fun TrackDetailsScreen(
     val searchResult by musicViewModel.searchResult.collectAsState()
     val loading by musicViewModel.loading.collectAsState()
 
-    var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
-    var isPlaying by remember { mutableStateOf(false) }
+    val currentTrack by playingTrackViewModel.currentTrack.collectAsState()
+    val isPlaying by playingTrackViewModel.isPlaying.collectAsState()
+    val showController by playingTrackViewModel.showController.collectAsState()
 
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -67,23 +70,33 @@ fun TrackDetailsScreen(
         viewModel.loadTrack(trackId)
     }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer?.release()
-            mediaPlayer = null
-        }
-    }
-
     Scaffold(
         bottomBar = {
-            BottomNavBar(
-                navController = navController,
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                },
-                userId = currentUserId
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            ) {
+
+                if (showController) {
+                    PlayingTrack(
+                        viewModel = playingTrackViewModel,
+                        modifier = Modifier.fillMaxWidth(),
+                        artistName = trackUi?.artistName
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BottomNavBar(
+                    navController = navController,
+                    selectedIndex = selectedIndex,
+                    onItemSelected = { index ->
+                        selectedIndex = index
+                    },
+                    userId = currentUserId
+                )
+            }
         }
     ) { innerPadding ->
         Column(
@@ -192,32 +205,19 @@ fun TrackDetailsScreen(
                             if (!t.streamUrl.isNullOrEmpty()) {
                                 IconButton(
                                     onClick = {
-                                        if (!t.streamUrl.isEmpty()) {
-                                            if (isPlaying) {
-                                                mediaPlayer?.pause()
-                                                isPlaying = false
-                                            } else {
-                                                if (mediaPlayer == null) {
-                                                    mediaPlayer = MediaPlayer().apply {
-                                                        setDataSource(t.streamUrl)
-                                                        setOnPreparedListener {
-                                                            start()
-                                                            isPlaying = true
-                                                        }
-                                                        prepareAsync()
-                                                    }
-                                                } else {
-                                                    mediaPlayer?.start()
-                                                    isPlaying = true
-                                                }
-                                            }
+                                        if (isPlaying && currentTrack?.id == t.id) {
+                                            playingTrackViewModel.pause()
+                                        } else {
+                                            playingTrackViewModel.playTrack(t)
                                         }
                                     },
                                     modifier = Modifier.size(60.dp)
                                 ) {
                                     Image(
-                                        painter = painterResource(id = if(isDarkTheme) R.drawable.ic_play_gray else R.drawable.ic_play_black),
-                                        contentDescription = if (isPlaying) "Pause" else "Play",
+                                        painter = painterResource(
+                                            id = if (isDarkTheme) R.drawable.ic_play_gray else R.drawable.ic_play_black
+                                        ),
+                                        contentDescription = if (isPlaying && currentTrack?.id == t.id) "Pause" else "Play",
                                         modifier = Modifier.size(60.dp)
                                     )
                                 }
