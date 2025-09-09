@@ -155,6 +155,9 @@ fun MusicList(
                             .size(64.dp)
                             .padding(end = 8.dp)
                             .clip(RoundedCornerShape(8.dp))
+                            .clickable{
+                                navController.navigate("artistDetails/${artist.id}")
+                            }
                     )
                     Text(artist.name)
                 }

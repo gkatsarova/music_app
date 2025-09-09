@@ -188,7 +188,7 @@ fun AlbumDetailsScreen(
                                         }
                                         .clip(RoundedCornerShape(35.dp))
                                         .background(MaterialTheme.colorScheme.secondary)
-                                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                                        .padding(20.dp)
                                 ) {
                                     AsyncImage(
                                         model = ImageRequest.Builder(LocalContext.current)

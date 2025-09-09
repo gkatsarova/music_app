@@ -14,6 +14,9 @@ interface AlbumDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(album: AlbumEntity)
 
+    @Query("SELECT * FROM albums")
+    suspend fun getAll(): List<AlbumEntity>
+
     @Query("SELECT * FROM albums WHERE title LIKE '%' || :query || '%'")
     suspend fun search(query: String): List<AlbumEntity>
 
