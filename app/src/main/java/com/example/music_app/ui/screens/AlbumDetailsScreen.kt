@@ -170,7 +170,15 @@ fun AlbumDetailsScreen(
                             text = artistName,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable{
+                                    album?.artistId?.let{
+                                        if(it.isNotEmpty()){
+                                            navController.navigate("artistDetails/$it")
+                                        }
+                                    }
+                                }
                         )
 
                         Spacer(modifier = Modifier.height(24.dp))

@@ -3,6 +3,7 @@ package com.example.music_app.ui.screens
 import android.content.Context
 import android.media.MediaPlayer
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -143,14 +144,30 @@ fun TrackDetailsScreen(
                             text = ui.artistName ?: "Unknown",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable{
+                                    t.artistId.let{
+                                        if(it.isNotEmpty()){
+                                            navController.navigate("artistDetails/$it")
+                                        }
+                                    }
+                                }
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = ui.albumName ?: "Unknown",
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable{
+                                    t.albumId?.let{
+                                        if(it.isNotEmpty()){
+                                            navController.navigate("albumDetails/$it")
+                                        }
+                                    }
+                                }
                         )
                         Spacer(modifier = Modifier.height(24.dp))
 
