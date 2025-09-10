@@ -30,18 +30,9 @@ fun BottomNavBar(
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val items = listOf(
-        BottomNavItem("Create playlist", if (isDarkTheme)
-            painterResource(R.drawable.ic_add_gray)
-        else painterResource(R.drawable.ic_add_black)),
-        BottomNavItem("Liked songs", if (isDarkTheme)
-            painterResource(R.drawable.ic_heart_gray)
-        else painterResource(R.drawable.ic_heart_black)),
         BottomNavItem("Home", if (isDarkTheme)
             painterResource(R.drawable.ic_vinyl_gray)
         else painterResource(R.drawable.ic_vinyl_black)),
-        BottomNavItem("Playing now", if (isDarkTheme)
-            painterResource(R.drawable.ic_play_gray)
-        else painterResource(R.drawable.ic_play_black)),
         BottomNavItem("Profile", if (isDarkTheme)
             painterResource(R.drawable.ic_user_avatar_gray)
         else painterResource(R.drawable.ic_user_avatar_black))
@@ -69,12 +60,12 @@ fun BottomNavBar(
                     onClick = {
                         onItemSelected(index)
                         when (index) {
-                            2 -> {
+                            0 -> {
                                 navController.navigate("home") {
                                     popUpTo("home") { inclusive = false }
                                 }
                             }
-                            4 -> {
+                            1 -> {
                                 if (userId != null && userId != -1) {
                                     navController.navigate("profile/$userId") {
                                         popUpTo("home") { inclusive = false }

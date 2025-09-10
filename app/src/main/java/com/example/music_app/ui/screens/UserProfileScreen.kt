@@ -52,7 +52,7 @@ fun UserProfileScreen(
 
     var query by remember { mutableStateOf("") }
     val loading by musicViewModel.loading.collectAsState()
-    var selectedIndex by remember { mutableIntStateOf(4) }
+    var selectedIndex by remember { mutableIntStateOf(1) }
 
     val searchResult by musicViewModel.searchResult.collectAsState()
     val user by userViewModel.user.collectAsState()
@@ -207,11 +207,8 @@ fun UserProfileScreen(
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(
-                                                painter = if (isDarkTheme) {
-                                                    painterResource(id = R.drawable.ic_logout_gray)
-                                                } else {
-                                                    painterResource(id = R.drawable.ic_logout_black)
-                                                },
+                                                painter = painterResource(id = R.drawable.ic_logout_gray)
+                                                ,
                                                 contentDescription = "Logout",
                                                 modifier = Modifier.size(50.dp),
                                                 tint = Color.Unspecified
@@ -236,11 +233,8 @@ fun UserProfileScreen(
                                     ) {
                                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                             Icon(
-                                                painter = if (isDarkTheme) {
-                                                    painterResource(id = R.drawable.ic_delete_gray)
-                                                } else {
-                                                    painterResource(id = R.drawable.ic_delete_black)
-                                                },
+                                                painter = painterResource(id = R.drawable.ic_delete_gray)
+                                                ,
                                                 contentDescription = "Delete Account",
                                                 modifier = Modifier.size(50.dp),
                                                 tint = Color.Unspecified

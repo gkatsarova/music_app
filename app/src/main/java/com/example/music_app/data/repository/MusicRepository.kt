@@ -7,10 +7,12 @@ import com.example.music_app.data.api.RetrofitInstance
 import com.example.music_app.data.music.dao.AlbumDao
 import com.example.music_app.data.music.dao.ArtistDao
 import com.example.music_app.data.music.dao.RecentlyPlayedAlbumDao
+import com.example.music_app.data.music.dao.RecentlyPlayedArtistDao
 import com.example.music_app.data.music.dao.TrackDao
 import com.example.music_app.data.music.entity.AlbumEntity
 import com.example.music_app.data.music.entity.ArtistEntity
 import com.example.music_app.data.music.entity.RecentlyPlayedAlbumEntity
+import com.example.music_app.data.music.entity.RecentlyPlayedArtistEntity
 import com.example.music_app.data.music.entity.TrackEntity
 import com.example.music_app.data.repository.dto.ApiAlbum
 import com.example.music_app.data.repository.dto.ApiArtist
@@ -21,6 +23,7 @@ class MusicRepository(
     val artistDao: ArtistDao,
     val albumDao: AlbumDao,
     val recentlyPlayedAlbumDao: RecentlyPlayedAlbumDao,
+    val recentlyPlayedArtistDao: RecentlyPlayedArtistDao,
     context: Context
 ) {
     private val api: AudiusApi = RetrofitInstance.api
@@ -130,7 +133,7 @@ class MusicRepository(
         sharedPreferences.edit().putBoolean("is_data_loaded", isLoaded).apply()
     }
 
-    suspend fun addRecentlyPlayedAlbum(albumId: String, userId: Int) {
+    suspend fun addRecentlyPlayedAlbum(albumId: String?, userId: Int) {
         val recentlyPlayed = RecentlyPlayedAlbumEntity(
             userId = userId,
             albumId = albumId,
@@ -142,6 +145,20 @@ class MusicRepository(
     suspend fun getRecentlyPlayedAlbums(userId: Int): List<AlbumEntity> {
         val recentlyPlayed = recentlyPlayedAlbumDao.getRecentlyPlayedAlbums(userId)
         return recentlyPlayed.mapNotNull { albumDao.getAlbumById(it.albumId) }
+    }
+
+    suspend fun addRecentlyPlayedArtist(artistId: String, userId: Int) {
+        val recentlyPlayed = RecentlyPlayedArtistEntity(
+            userId = userId,
+            artistId = artistId,
+            playedAt = System.currentTimeMillis()
+        )
+        recentlyPlayedArtistDao.insert(recentlyPlayed)
+    }
+
+    suspend fun getRecentlyPlayedArtists(userId: Int): List<ArtistEntity> {
+        val recentlyPlayed = recentlyPlayedArtistDao.getRecentlyPlayedArtists(userId)
+        return recentlyPlayed.mapNotNull { artistDao.getArtistById(it.artistId) }
     }
 }
 

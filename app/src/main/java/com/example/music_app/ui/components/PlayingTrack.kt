@@ -1,7 +1,6 @@
 package com.example.music_app.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -31,8 +30,6 @@ fun PlayingTrack(
     val artistName by viewModel.artistName.collectAsState()
 
     if (currentTrack == null || !showController) return
-
-    val isDarkTheme = isSystemInDarkTheme()
 
     LaunchedEffect(currentTrack) {
         currentTrack?.albumId?.let { albumId ->
@@ -92,7 +89,7 @@ fun PlayingTrack(
                 modifier = Modifier.size(40.dp)
             ) {
                 Image(
-                    painter = painterResource(id = if(isDarkTheme)R.drawable.ic_prev_track_gray else R.drawable.ic_prev_track_black),
+                    painter = painterResource(id = R.drawable.ic_prev_track_gray),
                     contentDescription = "Previous",
                     modifier = Modifier.size(40.dp)
                 )
@@ -112,11 +109,9 @@ fun PlayingTrack(
                 Image(
                     painter = painterResource(
                         id = if (isPlaying) {
-                            if (isDarkTheme) R.drawable.ic_pause_track_gray
-                            else R.drawable.ic_pause_track_black
+                            R.drawable.ic_pause_track_gray
                         } else {
-                            if (isDarkTheme) R.drawable.ic_play_track_gray
-                            else R.drawable.ic_play_track_black
+                            R.drawable.ic_play_track_gray
                         }
                     ),
                     contentDescription = if (isPlaying) "Pause" else "Play",
@@ -129,7 +124,7 @@ fun PlayingTrack(
                 modifier = Modifier.size(40.dp)
             ) {
                 Image(
-                    painter = painterResource(id = if(isDarkTheme) R.drawable.ic_next_track_gray else R.drawable.ic_next_track_black),
+                    painter = painterResource(id = R.drawable.ic_next_track_gray),
                     contentDescription = "Next",
                     modifier = Modifier.size(40.dp)
                 )

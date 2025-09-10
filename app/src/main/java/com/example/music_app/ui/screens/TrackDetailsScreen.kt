@@ -30,6 +30,7 @@ import com.example.music_app.viewmodel.MusicViewModel
 import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.TrackViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
+import kotlinx.coroutines.launch
 
 @Composable
 fun TrackDetailsScreen(
@@ -46,6 +47,7 @@ fun TrackDetailsScreen(
         artistDao = db.artistDao(),
         albumDao = db.albumDao(),
         recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
+        recentlyPlayedArtistDao = db.recentlyPlayedArtistDao(),
         context = context
     )
 
@@ -54,7 +56,7 @@ fun TrackDetailsScreen(
     )
 
     var query by remember { mutableStateOf("") }
-    var selectedIndex by remember { mutableIntStateOf(2) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
     val searchResult by musicViewModel.searchResult.collectAsState()
     val loading by musicViewModel.loading.collectAsState()
 
@@ -66,6 +68,8 @@ fun TrackDetailsScreen(
 
     val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
     val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
+
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(trackId) {
         viewModel.loadTrack(trackId)
@@ -84,7 +88,9 @@ fun TrackDetailsScreen(
                         viewModel = playingTrackViewModel,
                         repository = repository,
                         userId = currentUserId,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
                     )
                 }
 
@@ -211,6 +217,12 @@ fun TrackDetailsScreen(
                                             playingTrackViewModel.pause()
                                         } else {
                                             playingTrackViewModel.playTrack(t, ui.artistName)
+                                        }
+                                        if (currentUserId != -1) {
+                                            scope.launch {
+                                                repository.addRecentlyPlayedAlbum(t.albumId?:"", currentUserId)
+                                                repository.addRecentlyPlayedArtist(t.artistId, currentUserId)
+                                            }
                                         }
                                     },
                                     modifier = Modifier.size(60.dp)

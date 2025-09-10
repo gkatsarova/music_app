@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest.Builder
 import com.example.music_app.R
+import com.example.music_app.data.music.entity.ArtistEntity
 
 @Composable
 fun HomeScreen(navController: NavController,
@@ -55,7 +56,7 @@ fun HomeScreen(navController: NavController,
     )
 
     var query by remember { mutableStateOf("") }
-    var selectedIndex by remember { mutableIntStateOf(2) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
 
     val searchResult by musicViewModel.searchResult.collectAsState()
     val userState = userViewModel.user.collectAsState()
@@ -68,6 +69,9 @@ fun HomeScreen(navController: NavController,
 
     var recentlyPlayedAlbums by remember { mutableStateOf<List<AlbumEntity>>(emptyList()) }
     var loadingRecentAlbums by remember { mutableStateOf(true) }
+
+    var recentlyPlayedArtists by remember { mutableStateOf<List<ArtistEntity>>(emptyList())}
+    var loadingRecentArtists by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         homeViewModel.saveSampleData()
@@ -87,9 +91,15 @@ fun HomeScreen(navController: NavController,
                 val albums = repository.getRecentlyPlayedAlbums(userId)
                 recentlyPlayedAlbums = albums
                 loadingRecentAlbums = false
+
+                loadingRecentArtists = true
+                val artists = repository.getRecentlyPlayedArtists(userId)
+                recentlyPlayedArtists = artists
+                loadingRecentArtists = false
             }
         } else if (navBackStackEntry?.destination?.route != "home") {
             recentlyPlayedAlbums = emptyList()
+            recentlyPlayedArtists = emptyList()
         }
     }
 
@@ -105,7 +115,9 @@ fun HomeScreen(navController: NavController,
                         viewModel = playingTrackViewModel,
                         repository = repository,
                         userId = user?.uid,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
                     )
                 }
 
@@ -158,6 +170,25 @@ fun HomeScreen(navController: NavController,
                     albums = recentlyPlayedAlbums,
                     onAlbumClick = { albumId ->
                         navController.navigate("albumDetails/$albumId")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            if (loadingRecentArtists) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (recentlyPlayedArtists.isNotEmpty()) {
+                RecentlyPlayedArtists(
+                    artists = recentlyPlayedArtists,
+                    onArtistClick = { artistId ->
+                        navController.navigate("artistDetails/$artistId")
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -216,6 +247,67 @@ fun RecentlyPlayedAlbums(
 
                             Text(
                                 text = album.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecentlyPlayedArtists(
+    artists: List<ArtistEntity>,
+    onArtistClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (artists.isNotEmpty()) {
+        Column(modifier = modifier) {
+            Text(
+                text = "Recently Played Artists",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(artists) { artist ->
+                    Card(
+                        modifier = Modifier
+                            .width(150.dp)
+                            .clickable { onArtistClick(artist.id) }
+                            .clip(RoundedCornerShape(8.dp)),
+                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    Builder(LocalContext.current).data(
+                                        data = artist.imageUrl ?: ""
+                                    ).apply(block = { ->
+                                        placeholder(R.drawable.ic_user_avatar_gray)
+                                        error(R.drawable.ic_user_avatar_gray)
+                                    }).build()),
+                                contentDescription = "Artist image",
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(RoundedCornerShape(60.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = artist.name,
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,

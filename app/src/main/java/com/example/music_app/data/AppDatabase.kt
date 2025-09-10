@@ -15,8 +15,10 @@ import com.example.music_app.data.user.Converters
 import com.example.music_app.data.user.UserDao
 import com.example.music_app.data.user.UserEntity
 import com.example.music_app.data.music.DateConverter
+import com.example.music_app.data.music.dao.RecentlyPlayedArtistDao
+import com.example.music_app.data.music.entity.RecentlyPlayedArtistEntity
 
-@Database(entities = [UserEntity::class, ArtistEntity::class, AlbumEntity::class, TrackEntity::class, RecentlyPlayedAlbumEntity::class],
+@Database(entities = [UserEntity::class, ArtistEntity::class, AlbumEntity::class, TrackEntity::class, RecentlyPlayedAlbumEntity::class, RecentlyPlayedArtistEntity::class],
     version = 1)
 @TypeConverters(Converters::class, DateConverter::class)
 abstract class AppDatabase: RoomDatabase() {
@@ -26,5 +28,7 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun trackDao(): TrackDao
 
     abstract fun recentlyPlayedAlbumDao(): RecentlyPlayedAlbumDao
+
+    abstract fun recentlyPlayedArtistDao(): RecentlyPlayedArtistDao
 
 }

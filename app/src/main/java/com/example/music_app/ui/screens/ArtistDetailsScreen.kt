@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -36,6 +36,7 @@ import com.example.music_app.ui.components.SearchBar
 import com.example.music_app.viewmodel.MusicViewModel
 import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
+import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistDetailsScreen(
@@ -44,7 +45,6 @@ fun ArtistDetailsScreen(
     playingTrackViewModel: PlayingTrackViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val isDarkTheme = isSystemInDarkTheme()
 
     val db = DatabaseClient.getDatabase(context)
     val repository = MusicRepository(
@@ -52,6 +52,7 @@ fun ArtistDetailsScreen(
         artistDao = db.artistDao(),
         albumDao = db.albumDao(),
         recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
+        recentlyPlayedArtistDao = db.recentlyPlayedArtistDao(),
         context = context
     )
 
@@ -64,7 +65,7 @@ fun ArtistDetailsScreen(
     )
 
     var query by remember { mutableStateOf("") }
-    var selectedIndex by remember { mutableIntStateOf(2) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
     val searchResult by musicViewModel.searchResult.collectAsState()
     val loading by musicViewModel.loading.collectAsState()
 
@@ -74,6 +75,8 @@ fun ArtistDetailsScreen(
 
     val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
     val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
+
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(artistId) {
         artist = repository.artistDao.getArtistById(artistId)
@@ -93,7 +96,9 @@ fun ArtistDetailsScreen(
                         viewModel = playingTrackViewModel,
                         repository = repository,
                         userId = currentUserId,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
                     )
                 }
 
@@ -149,8 +154,8 @@ fun ArtistDetailsScreen(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(artist!!.imageUrl)
                                     .crossfade(true)
-                                    .placeholder(if (isDarkTheme) R.drawable.ic_user_avatar_gray else R.drawable.ic_user_avatar_black)
-                                    .error(if (isDarkTheme) R.drawable.ic_user_avatar_gray else R.drawable.ic_user_avatar_black)
+                                    .placeholder(R.drawable.ic_user_avatar_gray)
+                                    .error(R.drawable.ic_user_avatar_gray)
                                     .build(),
                                 contentDescription = artist!!.name,
                                 contentScale = ContentScale.Crop,
@@ -192,8 +197,8 @@ fun ArtistDetailsScreen(
                                         model = ImageRequest.Builder(LocalContext.current)
                                             .data(album.artworkUrl)
                                             .crossfade(true)
-                                            .placeholder(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
-                                            .error(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                                            .placeholder(R.drawable.ic_record_player_gray)
+                                            .error(R.drawable.ic_record_player_gray)
                                             .build(),
                                         contentDescription = album.title,
                                         contentScale = ContentScale.Crop,
@@ -205,7 +210,8 @@ fun ArtistDetailsScreen(
                                     Text(
                                         text = album.title,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        textAlign = TextAlign.Center
+                                        textAlign = TextAlign.Center,
+                                        color = Color.LightGray
                                     )
                                 }
                             }
@@ -236,8 +242,8 @@ fun ArtistDetailsScreen(
                                         model = ImageRequest.Builder(LocalContext.current)
                                             .data(track.artworkUrl)
                                             .crossfade(true)
-                                            .placeholder(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
-                                            .error(if (isDarkTheme) R.drawable.ic_record_player_gray else R.drawable.ic_record_player_black)
+                                            .placeholder(R.drawable.ic_record_player_gray)
+                                            .error(R.drawable.ic_record_player_gray)
                                             .build(),
                                         contentDescription = track.title,
                                         contentScale = ContentScale.Crop,
@@ -248,7 +254,8 @@ fun ArtistDetailsScreen(
                                     )
                                     Text(
                                         text = track.title,
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.LightGray
                                     )
 
                                     Spacer(modifier = Modifier.weight(1f))
@@ -263,7 +270,7 @@ fun ArtistDetailsScreen(
                                         ) {
                                             Image(
                                                 painter = painterResource(
-                                                    id = if (isDarkTheme) R.drawable.ic_add_gray else R.drawable.ic_add_black
+                                                    id = R.drawable.ic_add_gray
                                                 ),
                                                 contentDescription = "Add track",
                                                 modifier = Modifier.size(40.dp)
@@ -275,13 +282,32 @@ fun ArtistDetailsScreen(
                                                 if (isPlaying && currentTrack?.id == track.id) {
                                                     playingTrackViewModel.pause()
                                                 } else {
-                                                    playingTrackViewModel.setPlaylist(tracks, trackIndex)
-                                                    playingTrackViewModel.playTrack(track, artist?.name)
+                                                    playingTrackViewModel.setPlaylist(
+                                                        tracks,
+                                                        trackIndex
+                                                    )
+                                                    playingTrackViewModel.playTrack(
+                                                        track,
+                                                        artist?.name
+                                                    )
+
+                                                    if (currentUserId != -1) {
+                                                        scope.launch {
+                                                            repository.addRecentlyPlayedArtist(
+                                                                artistId,
+                                                                currentUserId
+                                                            )
+                                                            repository.addRecentlyPlayedAlbum(
+                                                                track.albumId,
+                                                                currentUserId
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                             }) {
                                                 Image(
                                                     painter = painterResource(
-                                                        id = if (isDarkTheme) R.drawable.ic_play_gray else R.drawable.ic_play_black
+                                                        id = R.drawable.ic_play_gray
                                                     ),
                                                     contentDescription = if (isPlaying && currentTrack?.id == track.id) "Pause" else "Play",
                                                     modifier = Modifier.size(40.dp)
@@ -295,7 +321,7 @@ fun ArtistDetailsScreen(
                                         ) {
                                             Image(
                                                 painter = painterResource(
-                                                    id = if (isDarkTheme) R.drawable.ic_heart_gray else R.drawable.ic_heart_black
+                                                    id = R.drawable.ic_heart_gray
                                                 ),
                                                 contentDescription = "Like track",
                                                 modifier = Modifier.size(40.dp)
