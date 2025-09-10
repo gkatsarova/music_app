@@ -197,6 +197,7 @@ fun AlbumDetailsScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(albumTracks) { track ->
+                                val trackIndex = albumTracks.indexOf(track)
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
@@ -248,6 +249,7 @@ fun AlbumDetailsScreen(
                                                 if (isPlaying && currentTrack?.id == track.id) {
                                                     playingTrackViewModel.pause()
                                                 } else {
+                                                    playingTrackViewModel.setPlaylist(albumTracks, trackIndex)
                                                     playingTrackViewModel.playTrack(track, artistName)
                                                 }
                                             }) {

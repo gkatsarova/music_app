@@ -77,6 +77,17 @@ fun PlayingTrack(
             Spacer(modifier = Modifier.width(12.dp))
 
             IconButton(
+                onClick = { viewModel.previousTrack() },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = if(isDarkTheme)R.drawable.ic_prev_track_gray else R.drawable.ic_prev_track_black),
+                    contentDescription = "Previous",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            IconButton(
                 onClick = {
                     if (isPlaying) {
                     viewModel.pause()
@@ -98,7 +109,18 @@ fun PlayingTrack(
                         }
                     ),
                     contentDescription = if (isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+            IconButton(
+                onClick = { viewModel.nextTrack() },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = if(isDarkTheme) R.drawable.ic_next_track_gray else R.drawable.ic_next_track_black),
+                    contentDescription = "Next",
+                    modifier = Modifier.size(40.dp)
                 )
             }
         }

@@ -119,8 +119,8 @@ class HomeViewModel(private val repository: MusicRepository) : ViewModel() {
             ApiTrack(
                 id = "2",
                 title = "Track Two",
-                user = sampleArtists[1],
-                album = sampleAlbums[1],
+                user = sampleArtists[0],
+                album = sampleAlbums[0],
                 genre = "Hip-Hop",
                 artwork = mapOf(
                     "150x150" to "https://cn1.mainnet.audiusindex.org/content/01JSWTDQGEECV246XPNDV26066/150x150"
@@ -130,8 +130,8 @@ class HomeViewModel(private val repository: MusicRepository) : ViewModel() {
             ApiTrack(
                 id = "3",
                 title = "Track Three",
-                user = sampleArtists[2],
-                album = sampleAlbums[2],
+                user = sampleArtists[0],
+                album = sampleAlbums[0],
                 genre = "Rock",
                 artwork = mapOf(
                     "150x150" to "https://cn1.mainnet.audiusindex.org/content/01JSWTDQGEECV246XPNDV26066/150x150"
@@ -141,8 +141,8 @@ class HomeViewModel(private val repository: MusicRepository) : ViewModel() {
             ApiTrack(
                 id = "4",
                 title = "Track Four",
-                user = sampleArtists[3],
-                album = sampleAlbums[3],
+                user = sampleArtists[0],
+                album = sampleAlbums[0],
                 genre = "Electronic",
                 artwork = mapOf(
                     "150x150" to "https://cn1.mainnet.audiusindex.org/content/01JSWTDQGEECV246XPNDV26066/150x150"
@@ -152,8 +152,8 @@ class HomeViewModel(private val repository: MusicRepository) : ViewModel() {
             ApiTrack(
                 id = "5",
                 title = "Track Five",
-                user = sampleArtists[4],
-                album = sampleAlbums[4],
+                user = sampleArtists[0],
+                album = sampleAlbums[0],
                 genre = "Jazz",
                 artwork = mapOf(
                     "150x150" to "https://cn1.mainnet.audiusindex.org/content/01JSWTDQGEECV246XPNDV26066/150x150"

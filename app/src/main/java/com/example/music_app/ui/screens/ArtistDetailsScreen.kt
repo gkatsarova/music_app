@@ -217,6 +217,7 @@ fun ArtistDetailsScreen(
                                 )
                             }
                             items(tracks) { track ->
+                                val trackIndex = tracks.indexOf(track)
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -271,6 +272,7 @@ fun ArtistDetailsScreen(
                                                 if (isPlaying && currentTrack?.id == track.id) {
                                                     playingTrackViewModel.pause()
                                                 } else {
+                                                    playingTrackViewModel.setPlaylist(tracks, trackIndex)
                                                     playingTrackViewModel.playTrack(track, artist?.name)
                                                 }
                                             }) {

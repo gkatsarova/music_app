@@ -18,14 +18,16 @@ class PlayingTrackViewModel @Inject constructor() : ViewModel() {
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying
 
-    private val _mediaPlayer = MutableStateFlow<MediaPlayer?>(null)
-    val mediaPlayer: StateFlow<MediaPlayer?> = _mediaPlayer
+    private val _playlist = MutableStateFlow<List<TrackEntity>>(emptyList())
 
+    private val _mediaPlayer = MutableStateFlow<MediaPlayer?>(null)
     private val _artistName = MutableStateFlow<String?>(null)
     val artistName: StateFlow<String?> = _artistName
 
     private val _showController = MutableStateFlow(false)
     val showController: StateFlow<Boolean> = _showController
+
+    private val _currentIndex = MutableStateFlow(0)
 
     fun playTrack(track: TrackEntity, artistName: String? = null) {
         viewModelScope.launch {
@@ -79,5 +81,41 @@ class PlayingTrackViewModel @Inject constructor() : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         _mediaPlayer.value?.release()
+    }
+
+    fun setPlaylist(tracks: List<TrackEntity>, startIndex: Int = 0) {
+        _playlist.value = tracks
+        _currentIndex.value = startIndex
+        _currentTrack.value = tracks.getOrNull(startIndex)
+    }
+
+    fun nextTrack() {
+        if (_playlist.value.isEmpty()) return
+
+        val currentPlaylist = _playlist.value
+        val currentIdx = _currentIndex.value
+        val newIndex = (currentIdx + 1) % currentPlaylist.size
+        val track = currentPlaylist[newIndex]
+
+        viewModelScope.launch {
+            _mediaPlayer.value?.release()
+            _currentIndex.value = newIndex
+            playTrack(track, _artistName.value)
+        }
+    }
+
+    fun previousTrack() {
+        if (_playlist.value.isEmpty()) return
+
+        val currentPlaylist = _playlist.value
+        val currentIdx = _currentIndex.value
+        val newIndex = if (currentIdx - 1 < 0) currentPlaylist.lastIndex else currentIdx - 1
+        val track = currentPlaylist[newIndex]
+
+        viewModelScope.launch {
+            _mediaPlayer.value?.release()
+            _currentIndex.value = newIndex
+            playTrack(track, _artistName.value)
+        }
     }
 }
