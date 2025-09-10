@@ -1,4 +1,4 @@
-package com.example.music_app.data
+package com.example.music_app.data.user
 
 import java.security.MessageDigest
 

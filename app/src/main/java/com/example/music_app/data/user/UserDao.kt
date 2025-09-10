@@ -1,9 +1,10 @@
-package com.example.music_app.data
+package com.example.music_app.data.user
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.example.music_app.data.user.UserEntity
 
 @Dao
 interface UserDao{
