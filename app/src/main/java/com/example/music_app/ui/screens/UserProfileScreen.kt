@@ -96,6 +96,8 @@ fun UserProfileScreen(
                 if (showController) {
                     PlayingTrack(
                         viewModel = playingTrackViewModel,
+                        repository = repository,
+                        userId = user?.uid,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

@@ -1,14 +1,23 @@
 package com.example.music_app.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.music_app.data.music.entity.AlbumEntity
 import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.ui.components.MusicList
 import com.example.music_app.ui.components.SearchBar
@@ -20,6 +29,16 @@ import com.example.music_app.viewmodel.PlayingTrackViewModel
 import com.example.music_app.viewmodel.factory.MusicViewModelFactory
 import com.example.music_app.viewmodel.UserViewModel
 import com.example.music_app.viewmodel.factory.HomeViewModelFactory
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest.Builder
+import com.example.music_app.R
 
 @Composable
 fun HomeScreen(navController: NavController,
@@ -47,12 +66,30 @@ fun HomeScreen(navController: NavController,
 
     val showController by playingTrackViewModel.showController.collectAsState()
 
+    var recentlyPlayedAlbums by remember { mutableStateOf<List<AlbumEntity>>(emptyList()) }
+    var loadingRecentAlbums by remember { mutableStateOf(true) }
+
     LaunchedEffect(Unit) {
         homeViewModel.saveSampleData()
         musicViewModel.loadAllData{ message ->
             if (message.isNotEmpty()) {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry, user?.uid) {
+        if (navBackStackEntry?.destination?.route == "home" && user?.uid != null) {
+            user.uid.let { userId ->
+                loadingRecentAlbums = true
+                val albums = repository.getRecentlyPlayedAlbums(userId)
+                recentlyPlayedAlbums = albums
+                loadingRecentAlbums = false
+            }
+        } else if (navBackStackEntry?.destination?.route != "home") {
+            recentlyPlayedAlbums = emptyList()
         }
     }
 
@@ -66,6 +103,8 @@ fun HomeScreen(navController: NavController,
                 if (showController) {
                     PlayingTrack(
                         viewModel = playingTrackViewModel,
+                        repository = repository,
+                        userId = user?.uid,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -105,6 +144,86 @@ fun HomeScreen(navController: NavController,
                     searchResult = searchResult,
                     navController = navController
                 )
+            } else if (loadingRecentAlbums) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (recentlyPlayedAlbums.isNotEmpty()) {
+                RecentlyPlayedAlbums(
+                    albums = recentlyPlayedAlbums,
+                    onAlbumClick = { albumId ->
+                        navController.navigate("albumDetails/$albumId")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun RecentlyPlayedAlbums(
+    albums: List<AlbumEntity>,
+    onAlbumClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (albums.isNotEmpty()) {
+        Column(modifier = modifier) {
+            Text(
+                text = "Recently Played Albums",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(albums) { album ->
+                    Card(
+                        modifier = Modifier
+                            .width(150.dp)
+                            .clickable { onAlbumClick(album.id) }
+                            .clip(RoundedCornerShape(8.dp)),
+                        colors = CardDefaults.cardColors( MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    Builder(LocalContext.current).data(
+                                    data = album.artworkUrl ?: ""
+                                ).apply(block = { ->
+                                    placeholder(R.drawable.ic_record_player_gray)
+                                    error(R.drawable.ic_record_player_gray)
+                                }).build()),
+                                contentDescription = "Album artwork",
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = album.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
             }
         }
     }

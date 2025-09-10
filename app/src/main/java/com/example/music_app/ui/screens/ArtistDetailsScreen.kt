@@ -51,6 +51,7 @@ fun ArtistDetailsScreen(
         trackDao = db.trackDao(),
         artistDao = db.artistDao(),
         albumDao = db.albumDao(),
+        recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
         context = context
     )
 
@@ -90,6 +91,8 @@ fun ArtistDetailsScreen(
                 if (showController) {
                     PlayingTrack(
                         viewModel = playingTrackViewModel,
+                        repository = repository,
+                        userId = currentUserId,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

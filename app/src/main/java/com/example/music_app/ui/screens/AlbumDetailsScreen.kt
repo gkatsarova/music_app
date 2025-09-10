@@ -43,6 +43,8 @@ import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
 import com.example.music_app.ui.components.PlayingTrack
 import com.example.music_app.viewmodel.PlayingTrackViewModel
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun AlbumDetailsScreen(
@@ -54,11 +56,13 @@ fun AlbumDetailsScreen(
     val isDarkTheme = isSystemInDarkTheme()
 
     val db = DatabaseClient.getDatabase(context)
+
     val repository = MusicRepository(
         trackDao = db.trackDao(),
         artistDao = db.artistDao(),
         albumDao = db.albumDao(),
-        context = context
+        context = context,
+        recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao()
     )
 
     val musicViewModel: MusicViewModel = viewModel(
@@ -81,6 +85,8 @@ fun AlbumDetailsScreen(
     val sharedPrefs = context.getSharedPreferences("user_session_prefs", Context.MODE_PRIVATE)
     val currentUserId = sharedPrefs.getInt("logged_in_user_id", -1)
 
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(albumId) {
         album = repository.albumDao.getAlbumById(albumId)
         album?.let { alb ->
@@ -100,6 +106,8 @@ fun AlbumDetailsScreen(
                 if (showController) {
                     PlayingTrack(
                         viewModel = playingTrackViewModel,
+                        repository = repository,
+                        userId = currentUserId,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -251,6 +259,11 @@ fun AlbumDetailsScreen(
                                                 } else {
                                                     playingTrackViewModel.setPlaylist(albumTracks, trackIndex)
                                                     playingTrackViewModel.playTrack(track, artistName)
+                                                    if (currentUserId != -1) {
+                                                        scope.launch {
+                                                            repository.addRecentlyPlayedAlbum(albumId, currentUserId)
+                                                        }
+                                                    }
                                                 }
                                             }) {
                                                 Image(

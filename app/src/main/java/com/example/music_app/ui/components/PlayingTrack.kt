@@ -15,11 +15,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.music_app.R
+import com.example.music_app.data.repository.MusicRepository
 import com.example.music_app.viewmodel.PlayingTrackViewModel
 
 @Composable
 fun PlayingTrack(
     viewModel: PlayingTrackViewModel,
+    repository: MusicRepository,
+    userId: Int?,
     modifier: Modifier = Modifier
 ) {
     val currentTrack by viewModel.currentTrack.collectAsState()
@@ -30,6 +33,14 @@ fun PlayingTrack(
     if (currentTrack == null || !showController) return
 
     val isDarkTheme = isSystemInDarkTheme()
+
+    LaunchedEffect(currentTrack) {
+        currentTrack?.albumId?.let { albumId ->
+            userId?.let { uid ->
+                repository.addRecentlyPlayedAlbum(albumId, uid)
+            }
+        }
+    }
 
     Card(
         modifier = modifier

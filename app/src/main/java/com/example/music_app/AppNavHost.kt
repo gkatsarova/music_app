@@ -79,6 +79,7 @@ fun AppNavHost() {
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
                 albumDao = db.albumDao(),
+                recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
                 context = context
             )
 
@@ -111,6 +112,7 @@ fun AppNavHost() {
                     trackDao = db.trackDao(),
                     artistDao = db.artistDao(),
                     albumDao = db.albumDao(),
+                    recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
                     context = context
                 )
 
@@ -142,6 +144,7 @@ fun AppNavHost() {
                 trackDao = db.trackDao(),
                 artistDao = db.artistDao(),
                 albumDao = db.albumDao(),
+                recentlyPlayedAlbumDao = db.recentlyPlayedAlbumDao(),
                 context = context
             )
 

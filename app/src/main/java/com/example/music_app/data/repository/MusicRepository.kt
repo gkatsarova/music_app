@@ -6,9 +6,11 @@ import com.example.music_app.data.api.AudiusApi
 import com.example.music_app.data.api.RetrofitInstance
 import com.example.music_app.data.music.dao.AlbumDao
 import com.example.music_app.data.music.dao.ArtistDao
+import com.example.music_app.data.music.dao.RecentlyPlayedAlbumDao
 import com.example.music_app.data.music.dao.TrackDao
 import com.example.music_app.data.music.entity.AlbumEntity
 import com.example.music_app.data.music.entity.ArtistEntity
+import com.example.music_app.data.music.entity.RecentlyPlayedAlbumEntity
 import com.example.music_app.data.music.entity.TrackEntity
 import com.example.music_app.data.repository.dto.ApiAlbum
 import com.example.music_app.data.repository.dto.ApiArtist
@@ -18,6 +20,7 @@ class MusicRepository(
     val trackDao: TrackDao,
     val artistDao: ArtistDao,
     val albumDao: AlbumDao,
+    val recentlyPlayedAlbumDao: RecentlyPlayedAlbumDao,
     context: Context
 ) {
     private val api: AudiusApi = RetrofitInstance.api
@@ -125,6 +128,20 @@ class MusicRepository(
 
     fun setDataLoaded(isLoaded: Boolean) {
         sharedPreferences.edit().putBoolean("is_data_loaded", isLoaded).apply()
+    }
+
+    suspend fun addRecentlyPlayedAlbum(albumId: String, userId: Int) {
+        val recentlyPlayed = RecentlyPlayedAlbumEntity(
+            userId = userId,
+            albumId = albumId,
+            playedAt = System.currentTimeMillis()
+        )
+        recentlyPlayedAlbumDao.insert(recentlyPlayed)
+    }
+
+    suspend fun getRecentlyPlayedAlbums(userId: Int): List<AlbumEntity> {
+        val recentlyPlayed = recentlyPlayedAlbumDao.getRecentlyPlayedAlbums(userId)
+        return recentlyPlayed.mapNotNull { albumDao.getAlbumById(it.albumId) }
     }
 }
 
